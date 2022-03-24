@@ -1,0 +1,65 @@
+---
+- name: Install dependencies.
+  ansible.builtin.apt:
+    name: unzip
+    state: present
+    update_cache: yes
+
+- name: Check if files already exist.
+  stat:
+    path: "{{ tak_files_directory }}"
+  register: tak_files
+
+- name: Copy and unzip server files.
+  ansible.builtin.unarchive:
+    src: "{{ tak_archive_filename }}"
+    dest: "{{ tak_files_directory }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  when: not tak_files.stat.exists
+
+- name: Create symlink from the tak directory to /opt/tak/
+  ansible.builtin.file:
+    src: "{{ tak_files_directory }}/tak"
+    dest: "/opt/tak"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    state: link
+
+- name: Create CoreConfig.xml from template.
+  ansible.builtin.template:
+    src: '../templates/CoreConfig.xml.j2'
+    dest: "{{ tak_directory }}/CoreConfig.xml"
+
+- name: Create cert-metadata.sh from template.
+  ansible.builtin.template:
+    src: '../templates/cert-metadata.sh.j2'
+    dest: "{{ tak_directory }}/certs/cert-metadata.sh"
+
+- name: Create docker-compose.yml from template.
+  ansible.builtin.template:
+    src: '../templates/docker-compose.yml.j2'
+    dest: "/{{ tak_files_directory }}/docker-compose.yml"
+
+
+# Docker's `restart: unless-stopped` function may have some bugs. 
+# If issues arise, the below lines can be used to create a systemd service
+# to run `docker-compose up` on boot
+
+#- name: Create Systemd Service file to run `docker-compose up` on boot.
+#  ansible.builtin.template:
+#    src: '../templates/tak-docker-compose.service.j2'
+#    dest: '/etc/systemd/system/tak-docker-compose.service'
+#
+#- name: Enable tak-docker-compose.service.
+#  ansible.builtin.systemd:
+#    name: tak-docker-compose
+#    daemon_reload: yes
+#    enabled: yes
+
+- name: Run `docker-compose up`
+  community.docker.docker_compose:
+    project_src: "{{ tak_files_directory }}/"
+
+- include: cert_generation.yml
+  when: generate_certs is true

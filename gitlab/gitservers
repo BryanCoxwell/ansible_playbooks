@@ -1,0 +1,9 @@
+[gitservers]
+git.coxwell.io
+
+[gitservers:vars]
+server_architecture=amd64
+server_os=ubuntu
+server_distro=focal
+server_url=https://git.coxwell.io
+gitlab_home=/srv/gitlab

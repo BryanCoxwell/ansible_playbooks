@@ -1,0 +1,11 @@
+---
+- name: Install TAK
+  become: True
+  roles:
+    - role: "../roles/takservers"
+  hosts: takservers
+  vars:
+    pip_install_packages:
+      - name: docker-compose
+    docker_users:
+      - bryan

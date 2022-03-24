@@ -1,0 +1,40 @@
+---
+allow_unsecured_connections: false
+generate_certs: true
+
+##
+# Version and directory structure configs
+# tak_files_directory is the name of the unarchived tak files
+# tak_directory is the name of the symbolic link to the tak directory.
+# Using /opt/tak/ as the tak_directory will keep the file structure consistent with
+# the TAK documentation.
+##
+tak_version: '4.5-RELEASE-10'
+tak_files_directory: "/takserver-docker-{{ tak_version }}"
+tak_directory: "/opt/tak"
+tak_archive_filename: "{{ tak_files_directory }}.zip"
+
+##
+# docker-compose configs
+##
+takserver_container_name: 'takserver'
+tak_db_container_name: 'tak-db'
+
+##
+# Root CA, server, and client cert configs
+## 
+ca_country: 'US'
+ca_state: 'DC'
+ca_city: 'Washington'
+ca_organization: 'TAK'
+ca_organizational_unit: 'TAK'
+ca_certs_directory: 'files'
+server_cert_name: 'takserver'
+admin_client_cert_name: 'admin'
+
+# NOTE:
+# Since the TAK server is based on Tomcat, this password will be 
+# stored in the clear. Reference: https://cwiki.apache.org/confluence/display/TOMCAT/Password
+tak_database_password: 'changeme'
+unsecure_access_username: 'admin'
+unsecure_access_password: 'Pa$$w0rdForMe!!'

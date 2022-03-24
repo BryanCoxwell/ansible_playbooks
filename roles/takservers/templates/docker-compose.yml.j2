@@ -1,0 +1,50 @@
+version: "2"
+services:
+  tak-db:
+    build:
+      context: "./docker"
+      dockerfile: "Dockerfile.takserver-db"
+    volumes:
+      - "{{ tak_directory }}:/opt/tak:z"
+      - "{{ tak_directory }}/data:/var/lib/postgresql/data:z"
+  
+    networks:
+      takserver:
+        aliases:
+          - "tak-database"
+    ports:
+      - "5432:54324"
+    container_name: {{ tak_db_container_name }}
+    restart: "unless-stopped"
+
+  tak-server:
+    depends_on:
+      - "tak-db"
+    build:
+      context: "./docker"
+      dockerfile: "Dockerfile.takserver"
+    volumes:
+      - "{{ tak_directory }}:/opt/tak:z"
+    networks:
+      takserver:
+        aliases:
+          - "takserver"
+    ports:
+    {% if allow_unsecured_connections %}
+
+      - "8088:8088"
+      - "8080:8080"
+      - "8087:8087"
+    {% endif %}
+
+      - "8443:8443"
+      - "8444:8444"
+      - "8446:8446"
+      - "8089:8089"
+      - "9000:9000"
+      - "9001:9001"
+    container_name: {{ takserver_container_name }}
+    restart: "unless-stopped"
+networks:
+  takserver:
+    driver: "bridge"

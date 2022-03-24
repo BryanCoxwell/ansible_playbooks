@@ -1,0 +1,41 @@
+- name: Create root CA.
+  community.docker.docker_container_exec:
+    container: "{{ takserver_container_name }}"
+    command: /bin/bash -c "cd /opt/tak/certs && ./makeRootCa.sh"
+
+- name: Create server cert.
+  community.docker.docker_container_exec:
+    container: "{{ takserver_container_name }}"
+    command: /bin/bash -c "cd /opt/tak/certs && ./makeCert.sh server {{ server_cert_name }}"
+
+- name: Create account for unsecured web GUI access
+  community.docker.docker_container_exec:
+    container: "{{ takserver_container_name }}"
+    command: /bin/bash -c "cd /opt/tak && java -jar /opt/tak/utils/UserManager.jar usermod -A -p {{ unsecure_access_password }} {{ unsecure_access_username}}"
+  when: allow_unsecured_connections
+  
+  # This will be a regular client cert named admin (by default)
+  # It will be given admin privileges below after a restart
+- name: Create admin client cert.
+  community.docker.docker_container_exec:
+    container: "{{ takserver_container_name }}"
+    command: /bin/bash -c "cd /opt/tak/certs && ./makeCert.sh client {{ admin_client_cert_name }} "
+  
+- name: Restart containers
+  community.docker.docker_compose:
+    project_src: "{{ tak_files_directory }}/"
+    restarted: yes
+
+- name: Pause to allow servers to come up
+  ansible.builtin.pause:
+    seconds: 60
+
+- name: Give admin client cert admin privileges.
+  community.docker.docker_container_exec:
+    container: "{{ takserver_container_name }}"
+    command: /bin/bash -c "cd /opt/tak/ && java -jar /opt/tak/utils/UserManager.jar certmod -A  /opt/tak/certs/files/{{ admin_client_cert_name }}.pem "
+
+- name: Add read permissions on admin client cert (Will allow user to SCP it from remote machine). 
+  ansible.builtin.file: 
+    path: "{{ tak_directory }}/certs/files/{{ admin_client_cert_name }}.p12"
+    mode: a+r
