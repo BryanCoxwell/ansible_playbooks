@@ -1,0 +1,17 @@
+---
+include_mail_transport_agent: true
+enable_letsencrypt: true
+letsencrypt_email: 'bryancoxwell@gmail.com'
+
+gitlab_home:        '/srv/gitlab'
+gitlab_http_port:   '80'
+gitlab_https_port:  '443'
+gitlab_ssh_port:    '122'
+gitlab_shm_size:    '256m'
+
+gitlab_hostname: 'git'
+gitlab_domain: 'coxwell.io'
+gitlab_external_url: 'https://{{ gitlab_hostname }}.{{gitlab_domain}}'
+
+compose_directory: '/srv/compose'
+gitlab_container_name: 'gitlab'

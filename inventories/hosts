@@ -3,3 +3,9 @@
 
 [takservers:vars]
 ansible_ssh_user=bryan
+
+[gitlabservers]
+git.coxwell.io
+
+[gitlabservers:vars]
+ansible_ssh_user=ubuntu

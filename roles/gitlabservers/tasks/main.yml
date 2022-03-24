@@ -1,0 +1,25 @@
+---
+- name: Create directory for docker-compose.yml
+  ansible.builtin.file:
+    path: "{{ compose_directory }}"
+    state: 'directory'
+
+- name: Create docker-compose.yml from template.
+  ansible.builtin.template:
+    src: '../templates/docker-compose.yml.j2'
+    dest: '{{ compose_directory }}/docker-compose.yml'
+
+- name: Run `docker-compose up`
+  community.docker.docker_compose:
+    project_src: "{{ compose_directory }}/"
+
+- name: Wait for temporary password to be generated.
+  ansible.builtin.wait_for:
+    path: '/{{ gitlab_home }}/config/initial_root_password'
+
+- name: Show temporary password
+  ansible.builtin.command: "grep 'Password:' /{{ gitlab_home }}/config/initial_root_password"
+  register: output
+
+- ansible.builtin.debug:
+    var: output.stdout

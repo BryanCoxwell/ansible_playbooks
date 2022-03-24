@@ -2,39 +2,10 @@
 - name: Install GitLab
   become: True
   roles:
-    - geerlingguy.docker
-    - geerlingguy.pip
-  hosts: gitservers
-
-  tasks:
-    - name: Install Dependencies
-      ansible.builtin.apt: >
-        name={{ item }}
-        state=latest
-        update_cache=yes
-      loop:
-        - 'curl'
-        - 'openssh-server' 
-        - 'ca-certificates'
-        - 'tzdata'
-        - 'perl'
-        - 'postfix'
-        - 'apt-transport-https'
-
-    - name: Add GitLab GPG Key
-      ansible.builtin.apt_key:
-        url: https://packages.gitlab.com/gitlab/gitlab-ee/gpgkey
-        state: present
-
-    - name: Add GitLab Apt Config File
-      ansible.builtin.apt_repository:
-        repo: deb https://packages.gitlab.com/gitlab/gitlab-ee/{{ server_os }}/ {{ server_distro }} main
-        state: present
-
-    - name: Install GitLab Packages
-      ansible.builtin.apt:
-        name: gitlab-ee
-        state: present
-        update_cache: yes
-      environment:
-        EXTERNAL_URL: '{{ server_url }}'
+    - role: "../roles/gitlabservers"
+  hosts: gitlabservers
+  vars:
+    pip_install_packages:
+      - name: docker-compose
+    docker_users:
+      - ubuntu
